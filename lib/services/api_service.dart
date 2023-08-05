@@ -14,7 +14,7 @@ class ApiService {
     }
   }
 
-  // Реалізуйте метод для отримання детальної інформації про користувача
+
   Future<Map<String, dynamic>> getUserDetail(int userId) async {
     final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
     if (response.statusCode == 200) {

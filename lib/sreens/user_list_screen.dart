@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/users.dart';
 import '../services/api_service.dart';
 import '../widget/user_card.dart';
@@ -31,18 +34,36 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   Future<void> _loadUsers() async {
-    final result = await _apiService.getUsers(_currentPage);
-    final List<User> users = result['data'].map<User>((json) {
-      return User(
-        id: json['id'],
-        name: json['first_name'] + ' ' + json['last_name'],
-        email: json['email'],
-        avatar: json['avatar'],
-      );
-    }).toList();
-    setState(() {
-      _users = users;
-    });
+    try {
+      final result = await _apiService.getUsers(_currentPage);
+      final List<User> users = result['data'].map<User>((json) {
+        return User(
+          id: json['id'],
+          name: json['first_name'] + ' ' + json['last_name'],
+          email: json['email'],
+          avatar: json['avatar'],
+        );
+      }).toList();
+
+      // Зберегти користувачів в shared_preferences
+      final prefs = await SharedPreferences.getInstance();
+      final userJsonList = users.map((user) => user.toJson()).toList();
+      await prefs.setStringList('users', userJsonList.map((json) => jsonEncode(json)).toList());
+
+      setState(() {
+        _users = users;
+      });
+    } catch (error) {
+      // Відновити користувачів з shared_preferences у випадку відсутності Інтернет-з'єднання
+      final prefs = await SharedPreferences.getInstance();
+      final userJsonList = prefs.getStringList('users');
+      if (userJsonList != null) {
+        final users = userJsonList.map((json) => User.fromJson(jsonDecode(json))).toList();
+        setState(() {
+          _users = users;
+        });
+      }
+    }
   }
 
   Future<void> _loadMoreUsers() async {

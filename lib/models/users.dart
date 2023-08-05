@@ -10,4 +10,22 @@ class User {
     required this.email,
     required this.avatar,
   });
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+    };
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      name: json['name'],
+      email: json['email'],
+      avatar: json['avatar'],
+    );
+  }
 }
+

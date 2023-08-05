@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../models/users.dart';
 import '../services/api_service.dart';
 
@@ -14,6 +17,7 @@ class UserDetailScreen extends StatefulWidget {
 class _UserDetailScreenState extends State<UserDetailScreen> {
   final ApiService _apiService = ApiService();
   Map<String, dynamic> _userDetail = {};
+  String? _avatarUrl;
 
   @override
   void initState() {
@@ -22,10 +26,30 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Future<void> _loadUserDetail() async {
-    final result = await _apiService.getUserDetail(widget.user.id);
-    setState(() {
-      _userDetail = result['data'];
-    });
+    try {
+      final result = await _apiService.getUserDetail(widget.user.id);
+      setState(() {
+        _userDetail = result['data'];
+        _avatarUrl = _userDetail['avatar'];
+        _saveToCache(result['data'], _avatarUrl);
+      });
+    } catch (error) {
+      final prefs = await SharedPreferences.getInstance();
+      final userDetailJson = prefs.getString('userDetail_${widget.user.id}');
+      final avatarUrl = prefs.getString('avatarUrl_${widget.user.id}');
+      if (userDetailJson != null) {
+        setState(() {
+          _userDetail = jsonDecode(userDetailJson);
+          _avatarUrl = avatarUrl;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveToCache(Map<String, dynamic> userDetail, String? avatarUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userDetail_${widget.user.id}', jsonEncode(userDetail));
+    await prefs.setString('avatarUrl_${widget.user.id}', avatarUrl ?? '');
   }
 
   @override
@@ -59,16 +83,15 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            if (_userDetail.isNotEmpty)
-              Text(
-                'Position: ${_userDetail['last_name']}',
-                style: TextStyle(fontSize: 18),
-              ),
-            // Додайте інші додаткові дані про користувача
-            if (_userDetail.isNotEmpty)
-              Text(
-                'Avatar URL: ${_userDetail['avatar']}',
-                style: TextStyle(fontSize: 18),
+            Text(
+              'Position: ${_userDetail['last_name'] ?? "N/A"}',
+              style: TextStyle(fontSize: 18),
+            ),
+            if (_avatarUrl != null)
+              Image.network(
+                _avatarUrl!,
+                width: 100,
+                height: 100,
               ),
           ],
         ),

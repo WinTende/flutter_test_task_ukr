@@ -13,19 +13,19 @@ class UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2, // Додаткова тінь для карточки
-      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 24), // Збільшити відступи
+      elevation: 2,
+      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
       child: ListTile(
-        contentPadding: EdgeInsets.all(16), // Збільшити відступи внутрішнього контенту
+        contentPadding: EdgeInsets.all(16),
         leading: CircleAvatar(
-          radius: 36, // Збільшити радіус аватарки
+          radius: 36,
           backgroundImage: NetworkImage(user.avatar),
         ),
         title: Text(
           user.name,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Збільшити розмір шрифту
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(user.email, style: TextStyle(fontSize: 16)), // Збільшити розмір шрифту
+        subtitle: Text(user.email, style: TextStyle(fontSize: 16)),
         onTap: onTap,
       ),
     );
